@@ -42,7 +42,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY }}  # Private SSH Key (Set in GitHub Secrets)
           script: |
-            cd /var/www/staging
-            git pull origin staging
-            npm install --production
-            pm2 restart all  # Restart application with PM2
+            echo "Connected to EC2 successfully"
