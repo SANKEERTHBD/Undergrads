@@ -42,4 +42,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY }}  # Private SSH Key (Set in GitHub Secrets)
           script: |
-            echo "Connected to EC2 successfully"
+            git clone https://github.com/SANKEERTHBD/AWS.git
