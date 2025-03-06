@@ -15,18 +15,21 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci  # Faster and more reliable than `npm install`
 
-      - name: Run tests
-        run: npm test
+      - name: Set ESLint Permissions
+        run: chmod +x node_modules/.bin/eslint  # Fixes permission issue
 
       - name: Lint Code
-        run: npx eslint . || exit 1
+        run: npx --no-install eslint .  # Runs locally installed ESLint
+
+      - name: Run tests
+        run: npm test  # Ensure tests pass
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/staging'  # Only deploy if the push is to 'staging' branch
+    if: github.ref == 'refs/heads/staging'  # Only deploy on staging branch push
 
     steps:
       - name: Checkout Code
@@ -35,11 +38,11 @@ jobs:
       - name: Deploy to AWS EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AWS_HOST }}   # Use GitHub Secret
+          host: ${{ secrets.AWS_HOST }}   # AWS EC2 Public IP (Set in GitHub Secrets)
           username: ubuntu
-          key: ${{ secrets.AWS_SSH_KEY }}  # Use GitHub Secret
+          key: ${{ secrets.AWS_SSH_KEY }}  # Private SSH Key (Set in GitHub Secrets)
           script: |
             cd /var/www/staging
             git pull origin staging
-            npm install
-            pm2 restart all  # Restart app with PM2
+            npm install --production
+            pm2 restart all  # Restart application with PM2
