@@ -4,21 +4,45 @@ on:
   push:
     branches:
       - main
-      - staging
+      - staging  # Runs pipeline for staging branch
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci  # Faster and more reliable than `npm install`
 
-      - name: Run tests
-        run: npm test
+      - name: Set ESLint Permissions
+        run: chmod +x node_modules/.bin/eslint  # Fixes permission issue
 
       - name: Lint Code
-        run: npx eslint . ||  exit 1
+        run: npx --no-install eslint .  # Runs locally installed ESLint
+
+      - name: Run tests
+        run: npm test  # Ensure tests pass
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'  # Only deploy on staging branch push
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST }}   # AWS EC2 Public IP (Set in GitHub Secrets)
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}  # Private SSH Key (Set in GitHub Secrets)
+          script: |
+            cd /var/www/staging
+            git pull origin staging
+            npm install --production
+            pm2 restart all  # Restart application with PM2
