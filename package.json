@@ -1,0 +1,23 @@
+{
+  "name": "undergrads",
+  "version": "1.0.0",
+  "description": "About Undergrads",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SANKEERTHBD/Undergrads.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SANKEERTHBD/Undergrads/issues"
+  },
+  "homepage": "https://github.com/SANKEERTHBD/Undergrads#readme",
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  }
+}
