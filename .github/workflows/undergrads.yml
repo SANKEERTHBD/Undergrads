@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
+      - staging  # Runs pipeline for staging branch
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
@@ -20,4 +21,49 @@ jobs:
         run: npm test
 
       - name: Lint Code
-        run: npx eslint . ||  exit 1
+        run: npx eslint . || exit 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'  # Only deploy if the push is to 'staging' branch
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: 54.172.42.104
+          username: ubuntu
+          key: MIIEowIBAAKCAQEAma63X6b+QtdycuNBpM9PEnEKYoy5G+oP7BBTzeMOTUWSkmXW
+es3WS9F7cqOZG/6wx5MAVsEZK8oyC3PwQNOeFF6aLVWAOfDAO4mjYgWIkljNRNMI
+k1wUJ/gRhzrWOmdEuJW9vurhqRoNeOmFuiSF5Vmu+tGk4Cdg/t4vtzMHwJXJYecC
+xf+/PG8IjNn3jNP3WugARKBB14hlG55JZi+sooOi0H2TDVz9uK6EWWjM1EjjcMh4
+XmcjXFo45cfxBp0iGYWbk+QGaz7wuzJdIXHO4ldDZcgZ1KaJQ3zdKj4iD3cNl/mf
+UGsrM0tvu7o5ErwQlaBTI5Gr0NjWaCoFdv10MwIDAQABAoIBAChqZTkXfphvdl62
+WyYPitjrt3JxVaD8rhFDvfZQNwulN0We2IfVJ/0qaw+b7IELOsxRYW5vO8JjW0Pd
+ypoRzOnIcz1m1eDm6nb93GTD1cW+6sSlxwSR248jUuDAXWRgkhcE8jCKLqw8+LwK
+lat9PWUyb6zwgy6bzItaPSwtlGVV1pseaQDM3daa9vqums5rwvtgzMPuj1/aQTrb
+MDcfQhxEQ0EtX21HyTSbRCQBQYl7W/x598nQjU5Bojmzvffiaq3BVeqphm+aXD0z
+TrK3SEcV/yAwgPszeVzb+3d8Lp9W14GPFqqdVLXMNSDV9RfyxpqfZDEWnnReYz2Y
+BMiCGQECgYEAx36qJWnXjJVo3vUcLAkdFOgo06VJEzTTlJ/Qz/0LbDOESaBPYAIf
+8I7ISRo2B6WZYiP+y1YTIB1/X37AtvF+QRAyu/DXn0wOw5DvdIg3wTB6bV2DjPgy
+OsB3bs1rJT2A2iejNdbXpz7izv4wlVgk+caVgc1i6snV9g9ugwiOw7MCgYEAxTY1
+ikQzROKxiI5vNnWUjVm4zM53Qtwiq2wn21IB92QiTkd57asafrZ7DWerD4crXIZv
+VUBo8IDVwx4CSRrc+wcJPB1j36QlFU1ShWgTrBJ3OFwTopigYixBvw4Ae3QNEBES
+wEDhZwDbboFVzUpUVEvbMz5nre0MtxV405kQTYECgYAcSCXA9hdb09axPRiIWaZo
+z1zyXE1WzrdsK5gD1IDpDwijE3oNR1/Vz7gvPOsJ/H0ZP7cghoxhkiz7kdGqXeQj
+PzOiF0vKRpMVQJfh8mnNFp1UodxDgPBGCgEkkTSua+C3jMUDnfimujCXXcvvcDaV
+voR1iXOLi5+sqZVmODFdJwKBgQCkaW43aGZJvqh9jSmggGQpd6x+an646eepfFC6
+IuNqyTtkgWhgQS6khyONaGkPWARJbfZxX3JdVztfIKyNH+0tBo+nY2U5NJKJ8N2k
+RMFpyjdEcFcaTh4f2n+xdU3nnjeptmIoj66a/fbyaLcMoDQv1tHXJeav9JmOJUOH
+POt/gQKBgF/GX3vE3b+hh/yy0n8ZjHDCMJ4GQ0oH2LdJi18gHJSlx81KMBV60Lyt
+hhK/Bma3sDUEox1WBC1n6Tt86E2foFS6KWLc4+uzjRsXN9mRuXnYULlygXESJo1g
+Jp0Tgpika9/BJsfrY7bxY7UebuxADQkQ/D3tAu4f4eZrdXq5hqIX
+          script: |
+            cd /var/www/staging
+            git pull origin staging
+            npm install
+            pm2 restart all  # Restart app with PM2
